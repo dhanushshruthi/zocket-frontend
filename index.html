@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Table Based API Tester</title>
+</head>
+<body>
+    <h1>Ad API Tester (Table Based Inputs)</h1>
+
+    <label for="route">Choose API Route:</label>
+    <select id="route" onchange="renderInputTable()">
+        <option value="">-- Select --</option>
+        <option value="analyze-ad-performance">/analyze-ad-performance</option>
+        <option value="rewrite-ad-text">/rewrite-ad-text</option>
+        <option value="search-marketing-blogs">/search-marketing-blogs</option>
+    </select>
+
+    <div id="inputArea"></div>
+
+    <br>
+    <button onclick="triggerApi()">Send Request</button>
+
+    <h3>API Response:</h3>
+    <pre id="result"></pre>
+
+<script>
+function renderInputTable() {
+    const route = document.getElementById('route').value;
+    const container = document.getElementById('inputArea');
+    container.innerHTML = '';
+
+    if (route === "analyze-ad-performance") {
+        container.innerHTML = `
+            <h3>Ad Data</h3>
+            <table border="1">
+                <tr><td>Campaign Name</td><td><input id="campaign_name"></td></tr>
+                <tr><td>Impressions</td><td><input id="impressions" type="number"></td></tr>
+                <tr><td>Clicks</td><td><input id="clicks" type="number"></td></tr>
+                <tr><td>Conversions</td><td><input id="conversions" type="number"></td></tr>
+                <tr><td>Spend</td><td><input id="spend" type="number" step="0.01"></td></tr>
+            </table>
+        `;
+    } else if (route === "rewrite-ad-text") {
+        container.innerHTML = `
+            <h3>Rewrite Ad Text</h3>
+            <table border="1">
+                <tr><td>Original Text</td><td><input id="original_text"></td></tr>
+                <tr><td>Target Tone</td><td><input id="target_tone"></td></tr>
+                <tr><td>Target Platform</td><td><input id="target_platform"></td></tr>
+                <tr><td>Include CTA</td><td><input id="include_cta" type="checkbox"></td></tr>
+            </table>
+        `;
+    } else if (route === "search-marketing-blogs") {
+        container.innerHTML = `
+            <h3>Search Blogs</h3>
+            <table border="1">
+                <tr><td>Query</td><td><input id="query"></td></tr>
+                <tr><td>Max Results</td><td><input id="max_results" type="number"></td></tr>
+            </table>
+        `;
+    }
+}
+
+function triggerApi() {
+    const route = document.getElementById('route').value;
+    let payload = {};
+
+    if (route === "analyze-ad-performance") {
+        payload = {
+            ad_data: [
+                {
+                    campaign_name: document.getElementById('campaign_name').value,
+                    impressions: parseInt(document.getElementById('impressions').value),
+                    clicks: parseInt(document.getElementById('clicks').value),
+                    conversions: parseInt(document.getElementById('conversions').value),
+                    spend: parseFloat(document.getElementById('spend').value)
+                }
+            ]
+        };
+    } else if (route === "rewrite-ad-text") {
+        payload = {
+            original_text: document.getElementById('original_text').value,
+            target_tone: document.getElementById('target_tone').value,
+            target_platform: document.getElementById('target_platform').value,
+            include_cta: document.getElementById('include_cta').checked
+        };
+    } else if (route === "search-marketing-blogs") {
+        payload = {
+            query: document.getElementById('query').value,
+            max_results: parseInt(document.getElementById('max_results').value)
+        };
+    } else {
+        alert("Please select a valid route!");
+        return;
+    }
+
+    fetch(`http://localhost:8000/api/v1/${route}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById('result').textContent = 'Error: ' + err;
+    });
+}
+</script>
+
+</body>
+</html>
